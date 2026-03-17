@@ -25,8 +25,8 @@ function distanceMiles(lat1, lng1, lat2, lng2) {
 // Check if a block group polygon intersects a radius circle.
 // A block group is included if ANY of the following are true:
 //   1. Its centroid is inside the circle
-//   2. Any of its boundary vertices are inside the circle
-//   3. The circle center is inside the polygon (address is inside the block group)
+//   2. Any of its boundary vertices are inside the circle  
+//   3. The address point is inside the block group polygon
 function blockGroupIntersectsCircle(bgGeo, centerLat, centerLng, radiusMiles) {
   if (!bgGeo) return false;
   const { centroidLat, centroidLng, rings } = bgGeo;
@@ -39,22 +39,39 @@ function blockGroupIntersectsCircle(bgGeo, centerLat, centerLng, radiusMiles) {
 
   // 2. Any boundary vertex inside circle
   for (const ring of rings) {
-    for (const [vLng, vLat] of ring) {
+    for (const point of ring) {
+      // TIGER rings are [lng, lat]
+      const vLng = point[0];
+      const vLat = point[1];
+      if (typeof vLat !== 'number' || typeof vLng !== 'number') continue;
       if (distanceMiles(centerLat, centerLng, vLat, vLng) <= radiusMiles) return true;
     }
   }
 
-  // 3. Circle center inside polygon (point-in-polygon using ray casting on first ring)
-  const ring = rings[0];
-  if (!ring || ring.length === 0) return false;
+  // 3. Address point inside block group polygon (ray casting)
+  // Critical for rural areas where the block group is huge — no vertices or
+  // centroid may be within 1 mile even though the address sits inside the block group.
+  for (const ring of rings) {
+    if (pointInRing(centerLng, centerLat, ring)) return true;
+  }
+
+  return false;
+}
+
+// Ray casting point-in-polygon for a single ring
+// ring is array of [lng, lat] pairs (TIGER format)
+function pointInRing(px, py, ring) {
   let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, yi] = ring[i];
-    const [xj, yj] = ring[j];
-    if (yi === undefined || yj === undefined) continue;
-    const intersect = ((yi > centerLat) !== (yj > centerLat)) &&
-      (centerLng < (xj - xi) * (centerLat - yi) / (yj - yi) + xi);
-    if (intersect) inside = !inside;
+  const n = ring.length;
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1]; // lng, lat
+    const xj = ring[j][0], yj = ring[j][1];
+    if (typeof xi !== 'number' || typeof yi !== 'number') continue;
+    if (typeof xj !== 'number' || typeof yj !== 'number') continue;
+    // Ray cast: does horizontal ray from (px,py) cross this edge?
+    if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
+      inside = !inside;
+    }
   }
   return inside;
 }
@@ -118,13 +135,26 @@ export default async function handler(req, res) {
 
     if (Object.keys(safeGeometries).length > 0) {
       for (const [geoid, bgGeo] of Object.entries(safeGeometries)) {
-        if (blockGroupIntersectsCircle(bgGeo, lat, lng, radiusMiles)) {
-          insideGeoids.add(geoid);
+        if (blockGroupIntersectsCircle(bgGeo, lat, lng, radiusMiles)) insideGeoids.add(geoid);
+      }
+      // If still 0, the address is likely in a very large rural block group whose
+      // boundary vertices are all beyond the radius. Include the block group
+      // containing the address point directly.
+      if (insideGeoids.size === 0) {
+        console.warn('0 block groups via intersection — finding containing block group');
+        for (const [geoid, bgGeo] of Object.entries(safeGeometries)) {
+          if (!bgGeo?.rings) continue;
+          for (const ring of bgGeo.rings) {
+            if (pointInRing(lng, lat, ring)) {
+              insideGeoids.add(geoid);
+              break;
+            }
+          }
         }
       }
-      // Safety net: if polygon intersection found nothing, fall back to all BGs in county
+      // Last resort fallback only if all geometry checks fail
       if (insideGeoids.size === 0) {
-        console.warn('Polygon intersection found 0 block groups — falling back to county');
+        console.warn('All geometry checks failed — falling back to county');
         for (const geoid of Object.keys(bgData)) insideGeoids.add(geoid);
       }
     } else {
