@@ -129,21 +129,26 @@ export default async function handler(req, res) {
       throw new Error(`No Census data found for this area in ${year}. Try a different year.`);
     }
 
-    // 4. Filter block groups using polygon intersection
+    // 4. Filter block groups using polygon intersection + centroid distance
     const insideGeoids = new Set();
     const safeGeometries = bgGeometries || {};
+    const tigerCount = Object.keys(safeGeometries).length;
 
-    if (Object.keys(safeGeometries).length > 0) {
+    console.log(`TIGER geometries loaded: ${tigerCount}`);
+
+    if (tigerCount > 0) {
+      // Primary pass: full intersection test (centroid + vertices + point-in-polygon)
       for (const [geoid, bgGeo] of Object.entries(safeGeometries)) {
         if (blockGroupIntersectsCircle(bgGeo, lat, lng, radiusMiles)) insideGeoids.add(geoid);
       }
-      // If still 0, the address is likely in a very large rural block group whose
-      // boundary vertices are all beyond the radius. Include the block group
-      // containing the address point directly.
+      console.log(`After intersection pass: ${insideGeoids.size} block groups`);
+
+      // Secondary pass: if 0 found, find the block group containing the address
+      // (handles rural areas where all vertices are outside the radius)
       if (insideGeoids.size === 0) {
-        console.warn('0 block groups via intersection — finding containing block group');
+        console.warn('0 from intersection — running point-in-polygon only pass');
         for (const [geoid, bgGeo] of Object.entries(safeGeometries)) {
-          if (!bgGeo?.rings) continue;
+          if (!bgGeo?.rings?.length) continue;
           for (const ring of bgGeo.rings) {
             if (pointInRing(lng, lat, ring)) {
               insideGeoids.add(geoid);
@@ -151,15 +156,33 @@ export default async function handler(req, res) {
             }
           }
         }
+        console.log(`After point-in-polygon pass: ${insideGeoids.size} block groups`);
       }
-      // Last resort fallback only if all geometry checks fail
+
+      // Tertiary pass: if still 0 (e.g. no polygon data, centroid-only fallback)
+      // use nearest centroid by distance
       if (insideGeoids.size === 0) {
-        console.warn('All geometry checks failed — falling back to county');
-        for (const geoid of Object.keys(bgData)) insideGeoids.add(geoid);
+        console.warn('0 after polygon passes — using nearest centroid');
+        let minDist = Infinity;
+        let nearestGeoid = null;
+        for (const [geoid, bgGeo] of Object.entries(safeGeometries)) {
+          if (!bgGeo.centroidLat || !bgGeo.centroidLng) continue;
+          const d = distanceMiles(lat, lng, bgGeo.centroidLat, bgGeo.centroidLng);
+          if (d < minDist) { minDist = d; nearestGeoid = geoid; }
+        }
+        if (nearestGeoid) {
+          insideGeoids.add(nearestGeoid);
+          console.log(`Using nearest centroid: ${nearestGeoid} at ${minDist.toFixed(2)} miles`);
+        }
       }
     } else {
+      // No TIGER data at all — use ACS block groups with distance approximation
+      // Approximate centroid from GEOID is not possible, so include all as last resort
+      console.warn('No TIGER data — using all county block groups as fallback');
       for (const geoid of Object.keys(bgData)) insideGeoids.add(geoid);
     }
+
+    console.log(`Final block groups in radius: ${insideGeoids.size} of ${Object.keys(bgData).length}`);
 
     // 5. Aggregate block group data for the radius area
     const radiusRaw = aggregateBlockGroups(bgData, insideGeoids);
@@ -192,6 +215,7 @@ export default async function handler(req, res) {
       cityName: cityName || null,
       blockGroupsInRadius: insideGeoids.size,
       blockGroupsTotal: Object.keys(bgData).length,
+      tigerGeometriesLoaded: Object.keys(safeGeometries).length,
       tableRows,
     });
 

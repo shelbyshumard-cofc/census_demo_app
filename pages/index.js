@@ -200,6 +200,9 @@ export default function Home() {
                   <div>State: {result.stateName}</div>
                   <div style={{ marginTop: '0.3rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                     {result.blockGroupsInRadius} of {result.blockGroupsTotal} block groups in radius
+                    {result.tigerGeometriesLoaded === 0 && (
+                      <span style={{ color: '#dc2626' }}> · TIGER unavailable</span>
+                    )}
                   </div>
                 </div>
                 </div>
