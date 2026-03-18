@@ -93,29 +93,35 @@ export default function Home() {
       <div className="app-shell">
         {/* Header */}
         <header className="header">
-          {/* Riley Center logo mark */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: 4,
-              background: 'rgba(255,255,255,0.12)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '1.5px solid rgba(200,149,42,0.5)',
-              flexShrink: 0,
-            }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C8952A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <circle cx="12" cy="12" r="4"/>
-                <line x1="12" y1="2" x2="12" y2="8"/>
-                <line x1="12" y1="16" x2="12" y2="22"/>
-                <line x1="2" y1="12" x2="8" y2="12"/>
-                <line x1="16" y1="12" x2="22" y2="12"/>
+          {/* Left: CofC shield logo (links to Riley Center) + tool name */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+            <a
+              href="https://charleston.edu/riley/index.php"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Visit the Riley Center at the College of Charleston"
+              style={{ flexShrink: 0, display: 'flex', alignItems: 'center', textDecoration: 'none' }}
+            >
+              {/* CofC shield mark */}
+              <svg width="46" height="50" viewBox="0 0 46 50" xmlns="http://www.w3.org/2000/svg">
+                <path d="M23 2 L42 9 L42 29 Q42 41 23 48 Q4 41 4 29 L4 9 Z" fill="white" stroke="rgba(200,149,42,0.7)" strokeWidth="1.5"/>
+                <text x="23" y="20" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="5" fill="#6B1F2A" letterSpacing="0.8">COLLEGE OF</text>
+                <text x="23" y="26.5" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="5" fill="#6B1F2A" letterSpacing="0.8">CHARLESTON</text>
+                <text x="23" y="43" textAnchor="middle" fontFamily="Georgia, serif" fontWeight="bold" fontSize="24" fill="#6B1F2A">C</text>
               </svg>
-            </div>
+            </a>
+
+            {/* Divider */}
+            <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+
+            {/* Tool name + attribution */}
             <div>
               <div className="header-logo">Demographics <span>Radius</span> Tool</div>
               <div className="header-sub">Riley Center for Livable Communities · College of Charleston</div>
             </div>
           </div>
+
+          {/* Right: ACS label */}
           <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
             <div className="header-sub">U.S. Census ACS · American Community Survey</div>
           </div>
@@ -294,8 +300,12 @@ export default function Home() {
 
             {/* Beta footer */}
             <div className="beta-footer">
-              ⚠️ This tool is currently in <strong>beta testing</strong>. Data and results may contain inaccuracies.
-              Questions or bugs? Email <a href="mailto:shumards@cofc.edu">shumards@cofc.edu</a>.
+              <span>⚠️ This tool is currently in <strong>beta testing</strong>. Data and results may contain inaccuracies. Questions or bugs? Email <a href="mailto:shumards@cofc.edu">shumards@cofc.edu</a>.</span>
+              <span className="beta-footer-links">
+                <a href="/Radius_Methodology_Documentation_v2.docx" download>📄 Methodology Documentation</a>
+                <span style={{ opacity: 0.4 }}>·</span>
+                <a href="https://charleston.edu/riley/index.php" target="_blank" rel="noopener noreferrer">About the Riley Center ↗</a>
+              </span>
             </div>
           </div>
         </div>

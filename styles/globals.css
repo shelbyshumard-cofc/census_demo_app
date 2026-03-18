@@ -406,13 +406,17 @@ h1, h2, h3, h4 {
 .beta-footer {
   background: var(--navy);
   color: rgba(255,255,255,0.85);
-  text-align: center;
   padding: 0.65rem 1.5rem;
   font-size: 0.75rem;
   line-height: 1.5;
   letter-spacing: 0.02em;
   border-top: 2px solid var(--gold);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .beta-footer a {
@@ -422,6 +426,14 @@ h1, h2, h3, h4 {
 }
 
 .beta-footer a:hover { text-decoration: underline; }
+
+.beta-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
 .data-table thead th:not(:first-child) { text-align: right; }
 
