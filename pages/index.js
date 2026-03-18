@@ -93,7 +93,7 @@ export default function Home() {
       <div className="app-shell">
         {/* Header */}
         <header className="header">
-          {/* Left: CofC shield logo (links to Riley Center) + tool name */}
+          {/* Left: CofC logo (links to Riley Center) + tool name */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
             <a
               href="https://charleston.edu/riley/index.php"
@@ -102,13 +102,11 @@ export default function Home() {
               title="Visit the Riley Center at the College of Charleston"
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', textDecoration: 'none' }}
             >
-              {/* CofC shield mark */}
-              <svg width="46" height="50" viewBox="0 0 46 50" xmlns="http://www.w3.org/2000/svg">
-                <path d="M23 2 L42 9 L42 29 Q42 41 23 48 Q4 41 4 29 L4 9 Z" fill="white" stroke="rgba(200,149,42,0.7)" strokeWidth="1.5"/>
-                <text x="23" y="20" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="5" fill="#6B1F2A" letterSpacing="0.8">COLLEGE OF</text>
-                <text x="23" y="26.5" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="5" fill="#6B1F2A" letterSpacing="0.8">CHARLESTON</text>
-                <text x="23" y="43" textAnchor="middle" fontFamily="Georgia, serif" fontWeight="bold" fontSize="24" fill="#6B1F2A">C</text>
-              </svg>
+              <img
+                src="/cofc-logo.png"
+                alt="College of Charleston"
+                style={{ height: 44, width: 'auto' }}
+              />
             </a>
 
             {/* Divider */}
