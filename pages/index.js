@@ -93,10 +93,30 @@ export default function Home() {
       <div className="app-shell">
         {/* Header */}
         <header className="header">
-          <div>
-            <div className="header-logo">Demographics <span>Radius</span> Tool</div>
+          {/* Riley Center logo mark */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: 4,
+              background: 'rgba(255,255,255,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '1.5px solid rgba(200,149,42,0.5)',
+              flexShrink: 0,
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C8952A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="4"/>
+                <line x1="12" y1="2" x2="12" y2="8"/>
+                <line x1="12" y1="16" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="8" y2="12"/>
+                <line x1="16" y1="12" x2="22" y2="12"/>
+              </svg>
+            </div>
+            <div>
+              <div className="header-logo">Demographics <span>Radius</span> Tool</div>
+              <div className="header-sub">Riley Center for Livable Communities · College of Charleston</div>
+            </div>
           </div>
-          <div style={{ marginLeft: 'auto' }}>
+          <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
             <div className="header-sub">U.S. Census ACS · American Community Survey</div>
           </div>
         </header>
@@ -236,7 +256,7 @@ export default function Home() {
             </div>
           </aside>
 
-          {/* Right panel: Map + Table */}
+          {/* Right panel: Map + Table + Footer */}
           <div className="right-panel">
             {/* Map */}
             <div className="map-container" style={{ position: 'relative' }}>
@@ -271,6 +291,12 @@ export default function Home() {
                 </p>
               </div>
             )}
+
+            {/* Beta footer */}
+            <div className="beta-footer">
+              ⚠️ This tool is currently in <strong>beta testing</strong>. Data and results may contain inaccuracies.
+              Questions or bugs? Email <a href="mailto:shumards@cofc.edu">shumards@cofc.edu</a>.
+            </div>
           </div>
         </div>
       </div>
