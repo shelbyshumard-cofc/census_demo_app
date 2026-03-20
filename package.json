@@ -8,12 +8,13 @@
     "start": "next start"
   },
   "dependencies": {
+    "@turf/turf": "^6.5.0",
+    "@vercel/analytics": "^2.0.1",
+    "leaflet": "^1.9.4",
     "next": "14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "leaflet": "^1.9.4",
-    "xlsx": "^0.18.5",
-    "@turf/turf": "^6.5.0"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "eslint": "^8",
