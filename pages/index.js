@@ -1,5 +1,5 @@
 // pages/index.js
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import { ACS_YEARS } from '../lib/census';
@@ -19,13 +19,17 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const [tableRows, setTableRows] = useState(null);
+  const debounceRef = useRef(null);
+  const hasSearched = useRef(false); // track whether user has run at least one search
 
-  const handleSearch = useCallback(async () => {
+  const handleSearch = useCallback(async (overrideRadius) => {
     if (!address.trim()) return;
     setLoading(true);
     setError(null);
     setResult(null);
     setTableRows(null);
+
+    const radiusToUse = overrideRadius !== undefined ? overrideRadius : radius;
 
     try {
       const res = await fetch('/api/demographics', {
@@ -34,7 +38,7 @@ export default function Home() {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache',
         },
-        body: JSON.stringify({ address: address.trim(), radiusMiles: radius, year }),
+        body: JSON.stringify({ address: address.trim(), radiusMiles: radiusToUse, year }),
       });
 
       const data = await res.json();
@@ -42,12 +46,24 @@ export default function Home() {
 
       setResult(data);
       setTableRows(data.tableRows);
+      hasSearched.current = true;
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   }, [address, radius, year]);
+
+  // Auto-trigger search with 500ms debounce when radius changes,
+  // but only if the user has already run at least one search
+  useEffect(() => {
+    if (!hasSearched.current || !address.trim()) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      handleSearch(radius);
+    }, 500);
+    return () => clearTimeout(debounceRef.current);
+  }, [radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleSearch();
@@ -151,7 +167,14 @@ export default function Home() {
 
               {/* Radius */}
               <div className="field-group">
-                <label className="field-label">Radius</label>
+                <label className="field-label">
+                  Radius
+                  {loading && hasSearched.current && (
+                    <span style={{ marginLeft: '0.5rem', fontSize: '0.65rem', color: 'var(--maroon)', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>
+                      updating…
+                    </span>
+                  )}
+                </label>
                 <div className="radius-toggle" role="group" aria-label="Select radius">
                   {RADIUS_OPTIONS.map(r => (
                     <button
@@ -159,6 +182,7 @@ export default function Home() {
                       className={`radius-btn ${radius === r ? 'active' : ''}`}
                       onClick={() => setRadius(r)}
                       aria-pressed={radius === r}
+                      disabled={loading}
                     >
                       {r} {r === 1 ? 'mile' : 'miles'}
                     </button>
